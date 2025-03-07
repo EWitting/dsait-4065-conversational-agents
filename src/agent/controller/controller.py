@@ -58,7 +58,8 @@ class Controller:
 
     def handle_recommending(self):
         self.speak("Here is a recommendation for you.")
-        text, image = self.generator.generate(self.context, self.memory.get_memories(self.user))
+        memories = self.memory.retrieve(self.user, self.context)
+        text, image = self.generator.generate(self.context, memories)
         self.speak(text)
         self.show_image(image)
         response = self.listen()
@@ -73,7 +74,8 @@ class Controller:
             self.is_finished = True
             self.speak("Thank you for using our service. Have a nice day!")
         else:
-            self.phase = ConversationPhase.ASK_NAME
+            # Loop will continue recommendation process
+            pass
 
     def show_image(self, image: str):
         pass
