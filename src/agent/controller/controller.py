@@ -44,7 +44,7 @@ class Controller:
 
     def handle_ask_name(self):
         self.speak("Hi! I'm an AI fashion assistant. What's your name?")
-        response = self.listen()
+        response, _ = self.listen()
         self.user = response
         self.memory.add_user(self.user)
         self.phase = ConversationPhase.ASK_CONTEXT
@@ -62,8 +62,8 @@ class Controller:
         text, image = self.generator.generate(self.context, memories)
         self.speak(text)
         self.show_image(image)
-        response = self.listen()
-        preference = text + "response: " + response
+        response, emotion = self.listen()
+        preference = f"{text}, response: {response}, emotion: {emotion}"
         self.memory.add_memory(self.user, preference)
         self.phase = ConversationPhase.ASK_NAME
 
@@ -83,5 +83,6 @@ class Controller:
     def speak(self, message: str):
         pass
 
-    def listen(self) -> str:
+    def listen(self) -> str, str:
+        # returns text and emotion
         pass
