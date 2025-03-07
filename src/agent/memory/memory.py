@@ -1,16 +1,19 @@
+from dataclasses import dataclass, field
+
+@dataclass
 class Memory:
-    def __init__(self):
-        pass
+    # User -> Context -> Response
+    data: dict[str, dict[str, list[str]]] = field(default_factory=dict)
 
     def retrieve(self, user, context) -> str:
-        pass
+        return self.data[user][context]
 
     def add_user(self, user):   
-        pass
+        self.data[user] = {}
 
     def add_context(self, user, context):
-        pass
+        self.data[user][context] = []
 
-    def store_response(self, user, context, response):
-        pass
+    def add_memory(self, user, context, response):
+        self.data[user][context].append(response)
 

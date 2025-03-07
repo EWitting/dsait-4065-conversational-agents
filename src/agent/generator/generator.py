@@ -8,7 +8,7 @@ class Generator:
         return text, image
 
     def generate_text(self, context: str, memories: list[str]) -> str:
-        pass
+        return "A wedding dress, sneakers, and a cowboy hat"
 
     def generate_image(self, description: str) -> str:
-        pass
+        return "<insert image of a wedding dress, sneakers, and a cowboy hat>"

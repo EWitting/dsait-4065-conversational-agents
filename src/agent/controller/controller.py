@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from ..memory.memory import Memory
 from ..emotion.emotion import EmotionSystem
@@ -14,22 +14,19 @@ class ConversationPhase(Enum):
 
 @dataclass
 class Controller:
-    memory: Memory
-    emotion: EmotionSystem
-    asr: ASR
-    generator: Generator
+    memory: Memory = field(default_factory=Memory)
+    emotion: EmotionSystem = field(default_factory=EmotionSystem)
+    asr: ASR = field(default_factory=ASR)
+    generator: Generator = field(default_factory=Generator)
 
     user: str = ""
     context: str = ""
     
     is_finished: bool = False
-    phase: ConversationPhase = ConversationPhase.GREETING
-
-    def __init__(self):
-        pass
+    phase: ConversationPhase = ConversationPhase.ASK_NAME
 
     def start(self):
-        while not self.finished:
+        while not self.is_finished:
             self.step()
             sleep(0.1)
         
@@ -62,13 +59,13 @@ class Controller:
         text, image = self.generator.generate(self.context, memories)
         self.speak(text)
         self.show_image(image)
+        self.speak("What do you think?")
         response, emotion = self.listen()
         preference = f"{text}, response: {response}, emotion: {emotion}"
-        self.memory.add_memory(self.user, preference)
-        self.phase = ConversationPhase.ASK_NAME
+        self.memory.add_memory(self.user, self.context, preference)
 
         self.speak("Are you satisfied with the recommendation?")
-        response = self.listen()
+        response, _ = self.listen()
         if response == "yes":
             self.phase = ConversationPhase.END
             self.is_finished = True
@@ -78,11 +75,11 @@ class Controller:
             pass
 
     def show_image(self, image: str):
-        pass
+        print(image)
 
     def speak(self, message: str):
-        pass
+        print(message)
 
-    def listen(self) -> str, str:
+    def listen(self) -> tuple[str, str]:
         # returns text and emotion
-        pass
+        return input("Type your response: "), input("Type your emotion: ")
