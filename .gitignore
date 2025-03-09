@@ -8,3 +8,5 @@ wheels/
 
 # venv
 .venv
+/src/agent/generator/mistral_api
+/src/agent/generator/stability_api
