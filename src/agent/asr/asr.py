@@ -1,4 +1,6 @@
 import whisper
+import warnings
+warnings.filterwarnings("ignore", message="FP16 is not supported on CPU; using FP32 instead")
 
 class ASR:
     def __init__(self, model_name: str = "base"):
