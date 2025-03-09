@@ -5,6 +5,7 @@ import time
 class VideoSystem:
     def __init__(self):
         self.capture = None
+        self.emotions = {"happy", "sad", "neutral", "disgust", "surprise"}
 
     def get_emotion(self, video=None, utterance_length=5):
         if video is None:
@@ -26,8 +27,9 @@ class VideoSystem:
 
             try:
                 analysis = DeepFace.analyze(frame, actions=['emotion'], enforce_detection=False)
-                dominantEmotion = analysis[0].get('dominant_emotion', 'Unknown')
-                detectedEmotions.append(dominantEmotion)
+                detectedEmotion = analysis[0].get('dominant_emotion', 'Unknown')
+                if detectedEmotion in self.emotions:
+                    detectedEmotions.append(detectedEmotion)
             except Exception as e:
                 print(f"Error: {e}. No face detected.")
 
@@ -39,6 +41,16 @@ class VideoSystem:
             return max(detectedEmotions, key=detectedEmotions.count)
         else:
             return None
+
+
+"""
+if __name__ == "__main__":
+    video_system = VideoSystem()
+    detected_emotion = video_system.get_emotion()
+
+    print("Detected Emotion:", detected_emotion)
+    """
+
 
 
 
