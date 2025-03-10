@@ -28,7 +28,7 @@ def retrieve(conversations: list[Conversation],
 
     # Sort memories by context similarity (highest to lowest)
     sorted_indices = np.argsort(context_similarities)[::-1]
-    memories = [memories[i] for i in sorted_indices[top_k]]
+    memories = [memories[i] for i in sorted_indices[:top_k]]
     return memories
 
 def compute_context_sim(current_embedding, context):

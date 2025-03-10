@@ -114,7 +114,7 @@ class Controller:
         self.speak("Are you satisfied with the recommendation?")
         response, _ = self.listen()
 
-        if response == "yes":
+        if response.lower() == "yes":
             self.speak("Thank you for using our service. Have a nice day!")
             return ConversationPhase.END
         else:
