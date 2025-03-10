@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from .schema import UserSchema, Preference, Context, Conversation, User
+from .retrieval import retrieve
 
 @dataclass
 class Memory:
@@ -23,14 +24,11 @@ class Memory:
         self.data[user]["conversations"][conversation_index]["preferences"].append(preference)
 
     def retrieve(self, user, conversation_index) -> list[str]:
-
-        # concatenate all preferences across all conversations
-        all_preferences = []
-        for conversation in self.data[user]["conversations"]:
-            all_preferences.extend(conversation["preferences"])
+        user_conversations = self.data[user]['conversations']
+        filtered_preferences = retrieve(user_conversations, conversation_index)
 
         # Convert each preference entry to a single string
-        return list(map(lambda p: self._preference_text_format(p), all_preferences))
+        return list(map(lambda p: self._preference_text_format(p), filtered_preferences))
 
     # TODO: this formatting for the prompt should probably be part of the generation code
     def _preference_text_format(self, preference):
