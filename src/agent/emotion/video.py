@@ -1,59 +1,39 @@
 from deepface import DeepFace
 import cv2
-import time
 
 class VideoSystem:
     def __init__(self):
-        self.capture = None
-        self.emotions = {"happy", "sad", "neutral", "disgust", "surprise"}
+        pass  # No need to initialize webcam if using a recorded video
 
-    def get_emotion(self, video=None, utterance_length=5):
-        if video is None:
-            capture = cv2.VideoCapture(0)
-        else:
-            capture = cv2.VideoCapture(video)
+    def get_emotion(self, video_path):
+        cap = cv2.VideoCapture(video_path)
 
-        start = time.time()
-        detectedEmotions = []
-
-        while capture.isOpened():
-            ret, frame = capture.read()
-            if not ret:
-                break
-
-            elapsedTime = time.time() - start
-            if elapsedTime >= utterance_length:
-                break
-
-            try:
-                analysis = DeepFace.analyze(frame, actions=['emotion'], enforce_detection=False)
-                detectedEmotion = analysis[0].get('dominant_emotion', 'Unknown')
-                if detectedEmotion in self.emotions:
-                    detectedEmotions.append(detectedEmotion)
-            except Exception as e:
-                print(f"Error: {e}. No face detected.")
-
-        capture.release()
-        cv2.destroyAllWindows()
-
-
-        if detectedEmotions:
-            return max(detectedEmotions, key=detectedEmotions.count)
-        else:
+        if not cap.isOpened():
+            print("Error: Could not open video file.")
             return None
 
+        emotions_detected = []  # Store detected emotions
 
-"""
-if __name__ == "__main__":
-    video_system = VideoSystem()
-    detected_emotion = video_system.get_emotion()
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if not ret:
+                break  # Stop when video ends
 
-    print("Detected Emotion:", detected_emotion)
-    """
+            try:
+                # Perform emotion analysis with error handling
+                analysis = DeepFace.analyze(frame, actions=['emotion'], enforce_detection=False)
+                if isinstance(analysis, list) and 'dominant_emotion' in analysis[0]:
+                    dominant_emotion = analysis[0]['dominant_emotion']
+                    emotions_detected.append(dominant_emotion)
+                    print(f"Detected Emotion: {dominant_emotion}")
+                else:
+                    print("No clear emotion detected.")
+            except Exception as e:
+                print(f"Error in emotion detection: {e}")
 
+        cap.release()  # Release video
 
+        print("\nSummary of Detected Emotions:")
+        print(emotions_detected)
 
-
-
-
-
+        return emotions_detected  # Return detected emotions list
