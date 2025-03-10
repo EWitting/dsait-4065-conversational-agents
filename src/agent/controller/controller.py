@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from enum import Enum
 from src.agent.memory.memory import Memory
-from src.agent.emotion.emotion import EmotionSystem
+from src.agent.emotion.linguistic import LinguisticSystem
 from src.agent.asr.asr import ASR
 from time import sleep
 from src.agent.generator.generator import Generator
@@ -10,8 +10,9 @@ import wavio
 import uuid
 import os
 from ..memory.schema import Context, User, Preference
-
 import re
+
+os.environ['TOKENIZERS_PARALLELISM'] = "true"
 
 def extract_name(text: str) -> str:
     """
@@ -40,13 +41,14 @@ class ConversationPhase(Enum):
 @dataclass
 class Controller:
     memory: Memory = field(default_factory=Memory)
-    emotion: EmotionSystem = field(default_factory=EmotionSystem)
+    emotion: LinguisticSystem = field(default_factory=LinguisticSystem)
     asr: ASR = field(default_factory=ASR)
     generator: Generator = field(default_factory=Generator)
 
     user: str = ""
     conversation_index: int = 0
     context: Context = None
+    user_info = None
     
     phase: ConversationPhase = ConversationPhase.ASK_NAME
 
@@ -92,6 +94,11 @@ class Controller:
             body_type=body_type,
             conversations=[]
         )
+        self.user_info = dict(
+            gender = gender,
+            height = height,
+            body_type = body_type
+        )
         self.memory.create_user(user)
         self.speak("Thank you for providing this information, I will remember it.")
 
@@ -121,7 +128,8 @@ class Controller:
     def handle_recommending(self) -> ConversationPhase:
         self.speak("Here is a recommendation for you.")
         memories = self.memory.retrieve(self.user, self.conversation_index)
-        text, image = self.generator.generate(self.context, memories)
+        context_and_user_info = self.context | self.user_info
+        text, image = self.generator.generate(context_and_user_info, memories)
         self.speak(text)
         self.show_image(image)
 
@@ -160,8 +168,10 @@ class Controller:
         wavio.write(temp_filename, recording, fs, sampwidth=2)
         
         text = self.asr.transcribe(prompt, temp_filename)
+        emotion = self.emotion.get_emotion(text)
         
         # Clean up the temporary file.
         os.remove(temp_filename)
         print("AI heard:", text)
-        return text, "neutral"
+        print("Emotion:", emotion)
+        return text, emotion

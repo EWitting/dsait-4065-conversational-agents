@@ -72,7 +72,7 @@ Be specific with colors and materials for image generation.
         encoded_prompt = image_prompt.replace(' ', '%20')
 
         # Construct the API URL
-        url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=512&height=512&model=flux"
+        url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=384&height=512&model=flux"
 
         # Make the GET request
         response = requests.get(url)
