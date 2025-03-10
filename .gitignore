@@ -10,4 +10,4 @@ wheels/
 .venv
 
 #mistral_ai
-src/agent/generator/mistral_ai
+src/agent/generator/mistral_api

@@ -66,7 +66,7 @@ class Controller:
 
     def handle_ask_name(self) -> ConversationPhase:
         self.speak("Hi! I'm an AI fashion assistant. What's your name?")
-        response, _ = self.listen()
+        response, _ = self.listen(prompt = "Hi! I'm an AI fashion assistant. What's your name?")
         self.user = response
 
         # Check if the user already exists in the database
@@ -77,13 +77,13 @@ class Controller:
         self.speak(f"Hi {self.user}, let's start with some personal questions to give you better recommendations.")
 
         self.speak("What gender best describes your clothing preferences?")
-        gender, _ = self.listen()
+        gender, _ = self.listen(prompt = "What gender best describes your clothing preferences?")
         
         self.speak("What is your height?")
-        height, _ = self.listen()
+        height, _ = self.listen(prompt = "What is your height?")
 
         self.speak("What is your body type?")
-        body_type, _ = self.listen()
+        body_type, _ = self.listen(prompt = "What is your body type?")
 
         user = dict(
             name=self.user,
@@ -100,13 +100,13 @@ class Controller:
 
     def handle_ask_context(self) -> ConversationPhase:
         self.speak("What's the occasion today?")
-        occasion, _ = self.listen()
+        occasion, _ = self.listen(prompt = "What's the occasion today?")
     
         self.speak("And what's the weather like?")
-        weather, _ = self.listen()
+        weather, _ = self.listen(prompt = "And what's the weather like?")
 
         self.speak("What style are you looking for?")
-        style, _ = self.listen()
+        style, _ = self.listen(prompt = "What style are you looking for?")
 
         context = dict(
             occasion=occasion,
@@ -126,7 +126,7 @@ class Controller:
         self.show_image(image)
 
         self.speak("What do you think?")
-        response, emotion = self.listen()
+        response, emotion = self.listen(prompt = "What do you think?")
     
         preference = dict(
             outfit=text,
@@ -136,21 +136,21 @@ class Controller:
         self.memory.add_preference(self.user, self.conversation_index, preference)
 
         self.speak("Are you satisfied with the recommendation?")
-        response, _ = self.listen()
+        response, _ = self.listen(prompt = "Are you satisfied with the recommendation?")
 
-        if response.lower() == "yes":
+        if "yes" in response.lower():
             self.speak("Thank you for using our service. Have a nice day!")
-            return ConversationPhase.END
+            return ConversationPhase.ASK_NAME
         else:
             return ConversationPhase.RECOMMENDING
 
-    def show_image(self, image: str):
-        print(image)
+    def show_image(self, image):
+        image.show()
 
     def speak(self, message: str):
         print(message)
 
-    def listen(self) -> tuple[str,str]:
+    def listen(self, prompt: str) -> tuple[str,str]:
         duration = 5 
         fs = 16000 
         print("Listening... Please speak now.")
@@ -159,9 +159,9 @@ class Controller:
         temp_filename = f"temp_{uuid.uuid4()}.wav"
         wavio.write(temp_filename, recording, fs, sampwidth=2)
         
-        text = self.asr.transcribe(temp_filename)
+        text = self.asr.transcribe(prompt, temp_filename)
         
         # Clean up the temporary file.
         os.remove(temp_filename)
-        
+        print("AI heard:", text)
         return text, "neutral"
