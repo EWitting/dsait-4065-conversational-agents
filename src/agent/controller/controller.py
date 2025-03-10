@@ -1,14 +1,15 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
-#from ..memory.memory import Memory
-#from ..emotion.emotion import EmotionSystem
+from src.agent.memory.memory import Memory
+from src.agent.emotion.emotion import EmotionSystem
 from src.agent.asr.asr import ASR
 from time import sleep
-#from ..generator.generator import Generator
+from src.agent.generator.generator import Generator
 import sounddevice as sd
 import wavio
 import uuid
 import os
+from ..memory.schema import Context, User, Preference
 
 import re
 
@@ -38,88 +39,118 @@ class ConversationPhase(Enum):
 
 @dataclass
 class Controller:
-    #memory: Memory
-    #emotion: EmotionSystem
-    asr: ASR
-    #generator: Generator
+    memory: Memory = field(default_factory=Memory)
+    emotion: EmotionSystem = field(default_factory=EmotionSystem)
+    asr: ASR = field(default_factory=ASR)
+    generator: Generator = field(default_factory=Generator)
 
     user: str = ""
-    context: str = ""
+    conversation_index: int = 0
+    context: Context = None
     
-    is_finished: bool = False
     phase: ConversationPhase = ConversationPhase.ASK_NAME
 
-    def __init__(self, asr: ASR):
-        #self.memory = memory
-        #self.emotion = emotion
-        self.asr = asr
-        #self.generator = generator
-        self.user = ""
-        self.context = ""
-        self.is_finished = False
-        self.phase = ConversationPhase.ASK_NAME
-
     def start(self):
-        while not self.is_finished:
+        while not self.phase == ConversationPhase.END:
             self.step()
             sleep(0.1)
-
         
     def step(self) -> str:
         match self.phase:
             case ConversationPhase.ASK_NAME:
-                self.handle_ask_name()
+                self.phase = self.handle_ask_name()
             case ConversationPhase.ASK_CONTEXT:
-                self.handle_ask_context()
+                self.phase = self.handle_ask_context()
             case ConversationPhase.RECOMMENDING:
-                self.handle_recommending()
+                self.phase = self.handle_recommending()
 
-    def handle_ask_name(self):
+    def handle_ask_name(self) -> ConversationPhase:
         self.speak("Hi! I'm an AI fashion assistant. What's your name?")
-        response = self.listen()
+        response, _ = self.listen()
         self.user = response
-        #test
-        name = extract_name(response)
-        print(response, name)
-        self.speak(name)
-        #self.memory.add_user(self.user)
-        self.phase = ConversationPhase.ASK_CONTEXT
 
-    def handle_ask_context(self):
-        self.speak("What's the occasion?")
-        response = self.listen()
-        self.context = response
-        #self.memory.add_context(self.user, self.context)
-        self.phase = ConversationPhase.RECOMMENDING
+        # Check if the user already exists in the database
+        if self.memory.user_exists(self.user):
+            self.speak("Hi again")
+            return ConversationPhase.ASK_CONTEXT
+        
+        self.speak(f"Hi {self.user}, let's start with some personal questions to give you better recommendations.")
 
-    def handle_recommending(self):
+        self.speak("What gender best describes your clothing preferences?")
+        gender, _ = self.listen()
+        
+        self.speak("What is your height?")
+        height, _ = self.listen()
+
+        self.speak("What is your body type?")
+        body_type, _ = self.listen()
+
+        user = dict(
+            name=self.user,
+            gender=gender,
+            height=height,
+            body_type=body_type,
+            conversations=[]
+        )
+        self.memory.create_user(user)
+        self.speak("Thank you for providing this information, I will remember it.")
+
+        return ConversationPhase.ASK_CONTEXT
+        
+
+    def handle_ask_context(self) -> ConversationPhase:
+        self.speak("What's the occasion today?")
+        occasion, _ = self.listen()
+    
+        self.speak("And what's the weather like?")
+        weather, _ = self.listen()
+
+        self.speak("What style are you looking for?")
+        style, _ = self.listen()
+
+        context = dict(
+            occasion=occasion,
+            weather=weather,
+            style=style
+        )
+
+        self.context = context
+        self.conversation_index = self.memory.create_conversation(self.user, context)
+        return ConversationPhase.RECOMMENDING
+
+    def handle_recommending(self) -> ConversationPhase:
         self.speak("Here is a recommendation for you.")
-        #text, image = self.generator.generate(self.context, self.memory.get_memories(self.user))
-        text = "A 3-piece navy suit with a black tie, black shoes and a shiny black belt!"
+        memories = self.memory.retrieve(self.user, self.conversation_index)
+        text, image = self.generator.generate(self.context, memories)
         self.speak(text)
-        #self.show_image(image)
-        response = self.listen()
-        preference = text + "response: " + response
-        #self.memory.add_memory(self.user, preference)
-        self.phase = ConversationPhase.ASK_NAME
+        self.show_image(image)
+
+        self.speak("What do you think?")
+        response, emotion = self.listen()
+    
+        preference = dict(
+            outfit=text,
+            response=response,
+            emotion=emotion
+        )
+        self.memory.add_preference(self.user, self.conversation_index, preference)
 
         self.speak("Are you satisfied with the recommendation?")
-        response = self.listen()
-        if response == "yes":
-            self.phase = ConversationPhase.END
-            self.is_finished = True
+        response, _ = self.listen()
+
+        if response.lower() == "yes":
             self.speak("Thank you for using our service. Have a nice day!")
+            return ConversationPhase.END
         else:
-            self.phase = ConversationPhase.ASK_NAME
+            return ConversationPhase.RECOMMENDING
 
     def show_image(self, image: str):
-        pass
+        print(image)
 
     def speak(self, message: str):
-        # For now, simply print the message.
-        print("AI says:", message)
+        print(message)
 
-    def listen(self) -> str:
+    def listen(self) -> tuple[str,str]:
         duration = 5 
         fs = 16000 
         print("Listening... Please speak now.")
@@ -133,9 +164,4 @@ class Controller:
         # Clean up the temporary file.
         os.remove(temp_filename)
         
-        return text
-if __name__ == "__main__":
-    from src.agent.asr.asr import ASR
-    asr_instance = ASR(model_name="base")
-    controller = Controller(asr=asr_instance)
-    controller.start()
+        return text, "neutral"
