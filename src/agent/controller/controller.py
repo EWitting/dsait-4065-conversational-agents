@@ -1,23 +1,34 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-#from ..memory.memory import Memory
-#from ..emotion.emotion import EmotionSystem
-from src.agent.emotion.emotion import EmotionSystem
-from src.agent.asr import asr
-
-#from ..asr.asr import ASR
+# from ..memory.memory import Memory
+# from ..emotion.emotion import EmotionSystem
+from src.agent.asr.asr import ASR
 from time import sleep
-#from ..generator.generator import Generator
-import cv2
+# from ..generator.generator import Generator
 import sounddevice as sd
-from scipy.io.wavfile import write
-import threading
-import time
-import numpy as np
+import wavio
+import uuid
 import os
 
+import re
 
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+def extract_name(text: str) -> str:
+    """
+    Extracts the name from a string like "my name is [name]."
+
+    Args:
+        text (str): The input text.
+
+    Returns:
+        str: The extracted name or an empty string if not found.
+    """
+    # This regex matches "my name is" (case-insensitive) followed by a sequence of letters,
+    # which we'll consider the name.
+    match = re.search(r"my name is\s+([\w'-]+)", text, re.IGNORECASE)
+    if match:
+        return match.group(1)
+    return ""
 
 
 class ConversationPhase(Enum):
@@ -29,16 +40,26 @@ class ConversationPhase(Enum):
 
 @dataclass
 class Controller:
-    #memory: Memory = field(default_factory=Memory)
-    emotion: EmotionSystem = field(default_factory=EmotionSystem)
-    asr: asr = field(default_factory=asr)
-    #generator: Generator = field(default_factory=Generator)
+    # memory: Memory
+    # emotion: EmotionSystem
+    asr: ASR
+    # generator: Generator
 
     user: str = ""
     context: str = ""
 
     is_finished: bool = False
     phase: ConversationPhase = ConversationPhase.ASK_NAME
+
+    def __init__(self, asr: ASR):
+        # self.memory = memory
+        # self.emotion = emotion
+        self.asr = asr
+        # self.generator = generator
+        self.user = ""
+        self.context = ""
+        self.is_finished = False
+        self.phase = ConversationPhase.ASK_NAME
 
     def start(self):
         while not self.is_finished:
@@ -56,126 +77,63 @@ class Controller:
 
     def handle_ask_name(self):
         self.speak("Hi! I'm an AI fashion assistant. What's your name?")
-        response, _ = self.listen()
+        response = self.listen()
         self.user = response
-        self.memory.add_user(self.user)
+        # test
+        name = extract_name(response)
+        print(response, name)
+        self.speak(name)
+        # self.memory.add_user(self.user)
         self.phase = ConversationPhase.ASK_CONTEXT
 
     def handle_ask_context(self):
         self.speak("What's the occasion?")
         response = self.listen()
         self.context = response
-        self.memory.add_context(self.user, self.context)
+        # self.memory.add_context(self.user, self.context)
         self.phase = ConversationPhase.RECOMMENDING
 
     def handle_recommending(self):
         self.speak("Here is a recommendation for you.")
-        memories = self.memory.retrieve(self.user, self.context)
-        text, image = self.generator.generate(self.context, memories)
+        # text, image = self.generator.generate(self.context, self.memory.get_memories(self.user))
+        text = "A 3-piece navy suit with a black tie, black shoes and a shiny black belt!"
         self.speak(text)
-        self.show_image(image)
-        self.speak("What do you think?")
-        response, emotion = self.listen()
-        preference = f"{text}, response: {response}, emotion: {emotion}"
-        self.memory.add_memory(self.user, self.context, preference)
+        # self.show_image(image)
+        response = self.listen()
+        preference = text + "response: " + response
+        # self.memory.add_memory(self.user, preference)
+        self.phase = ConversationPhase.ASK_NAME
 
         self.speak("Are you satisfied with the recommendation?")
-        response, _ = self.listen()
+        response = self.listen()
         if response == "yes":
             self.phase = ConversationPhase.END
             self.is_finished = True
             self.speak("Thank you for using our service. Have a nice day!")
         else:
-            # Loop will continue recommendation process
-            pass
+            self.phase = ConversationPhase.ASK_NAME
 
     def show_image(self, image: str):
-        print(image)
+        pass
 
     def speak(self, message: str):
-        print(message)
+        # For now, simply print the message.
+        print("AI says:", message)
 
-    def listen(self) -> tuple[str, str]:
-            video_file = "recorded_video.avi"
-            audio_file = "recorded_audio.wav"
+    def listen(self) -> str:
+        duration = 5
+        fs = 16000
+        print("Listening... Please speak now.")
+        recording = sd.rec(int(duration * fs), samplerate=fs, channels=1)
+        sd.wait()
+        temp_filename = f"temp_{uuid.uuid4()}.wav"
+        wavio.write(temp_filename, recording, fs, sampwidth=2)
 
-            video_thread = threading.Thread(target=self.record_video, args=(video_file,))
-            audio_thread = threading.Thread(target=self.record_audio, args=(audio_file,))
-            video_thread.start()
-            audio_thread.start()
+        text = self.asr.transcribe(temp_filename)
 
-            video_thread.join()
-            audio_thread.join()
+        # Clean up the temporary file.
+        os.remove(temp_filename)
 
-
-            time.sleep(1)
-            response = self.asr.transcribe(audio_file)
-            emotion = self.emotion.get_emotion(video_file, audio_file)
-
-            return response, emotion
-
-    def record_video(self, filename):
-        print("Starting video recording...")
-        cap = cv2.VideoCapture(0)
-        if not cap.isOpened():
-            print("Error: Could not open webcam.")
-            return
-
-        fourcc = cv2.VideoWriter_fourcc(*'MJPG')  t
-        out = cv2.VideoWriter(filename, fourcc, 20.0, (640, 480))
-
-        if not out.isOpened():
-            print("Error: Could not open video file for writing.")
-            return
-
-        start_time = time.time()
-        frame_count = 0
-
-        while time.time() - start_time < 5:  # Record for 5 seconds
-            ret, frame = cap.read()
-            if not ret:
-                print("Error: Failed to grab frame.")
-                break
-            out.write(frame)
-            frame_count += 1
-
-        cap.release()
-        out.release()
-        print(f"Video saved as {filename} with {frame_count} frames.")
-
-    def record_audio(self, filename):
-            duration = 5
-            sample_rate = 44100
-
-            print("Recording audio...")
-            audio_data = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=1, dtype=np.int16)
-            sd.wait()
-            print("Audio recording complete.")
-
-            write(filename, sample_rate, audio_data)
-
-
-if __name__ == "__main__":
-    from src.agent.asr.asr import ASR
-    from src.agent.emotion.emotion import EmotionSystem
-
-
-    asr_instance = ASR(model_name="base")
-    emotion_instance = EmotionSystem()
-
-    controller = Controller(asr=asr_instance, emotion=emotion_instance)
-
-    print("Starting video and audio recording for emotion detection...")
-    response, emotion = controller.listen()
-
-    print("User response (ASR transcription):", response)
-    print("Detected Emotion:", emotion)
-
-    print("Audio file recorded as 'recorded_audio.wav'")
-
-
-
-    detected_emotion = emotion_instance.get_emotion("recorded_video.avi", "recorded_audio.wav") # Pass the recorded files for emotion detection
-    print("Detected Emotion from Video and Audio (direct test):", detected_emotion)
+        return text
 
 
