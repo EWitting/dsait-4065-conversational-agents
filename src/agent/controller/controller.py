@@ -1,5 +1,8 @@
 from dataclasses import dataclass
 from enum import Enum
+
+import cv2
+
 # from ..memory.memory import Memory
 # from ..emotion.emotion import EmotionSystem
 from src.agent.asr.asr import ASR
@@ -11,6 +14,8 @@ import uuid
 import os
 
 import re
+
+from src.agent.emotion.emotion import EmotionSystem
 
 
 def extract_name(text: str) -> str:
@@ -41,7 +46,7 @@ class ConversationPhase(Enum):
 @dataclass
 class Controller:
     # memory: Memory
-    # emotion: EmotionSystem
+    emotion: EmotionSystem
     asr: ASR
     # generator: Generator
 
@@ -51,9 +56,9 @@ class Controller:
     is_finished: bool = False
     phase: ConversationPhase = ConversationPhase.ASK_NAME
 
-    def __init__(self, asr: ASR):
+    def __init__(self, asr: ASR, emotion: EmotionSystem):
         # self.memory = memory
-        # self.emotion = emotion
+        self.emotion = emotion
         self.asr = asr
         # self.generator = generator
         self.user = ""
@@ -120,20 +125,68 @@ class Controller:
         # For now, simply print the message.
         print("AI says:", message)
 
-    def listen(self) -> str:
+    def listen(self) -> tuple[str, str]:
         duration = 5
         fs = 16000
-        print("Listening... Please speak now.")
+        temp_audio_file = f"temp_audio_{uuid.uuid4()}.wav"
+        temp_video_file = f"temp_video_{uuid.uuid4()}.avi"
+
+        print("Recording audio...")
         recording = sd.rec(int(duration * fs), samplerate=fs, channels=1)
+
+        print("Recording video...")
+        cap = cv2.VideoCapture(0)  # Open the default camera
+        if not cap.isOpened():
+            self.speak("Error: Unable to access the camera.")
+            return "", ""
+
+        fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+        out = cv2.VideoWriter(temp_video_file, fourcc, 20.0, (640, 480))
+
+        for _ in range(int(duration * 20)):  # Assuming 20 FPS for 5 seconds
+            ret, frame = cap.read()
+            if ret:
+                out.write(frame)
+
+
         sd.wait()
-        temp_filename = f"temp_{uuid.uuid4()}.wav"
-        wavio.write(temp_filename, recording, fs, sampwidth=2)
 
-        text = self.asr.transcribe(temp_filename)
+        cap.release()
+        out.release()
 
-        # Clean up the temporary file.
-        os.remove(temp_filename)
+        sleep(1)
 
-        return text
+        print("Video recording complete.")
+
+        wavio.write(temp_audio_file, recording, fs, sampwidth=2)
+        print("Audio recording complete.")
+
+        text = self.asr.transcribe(temp_audio_file)
+        emotion = self.emotion.get_emotion(temp_video_file, temp_audio_file)
+
+        return text, emotion
+
+
+if __name__ == "__main__":
+    from src.agent.asr.asr import ASR
+    from src.agent.emotion.emotion import EmotionSystem
+
+
+    asr_instance = ASR(model_name="base")
+    emotion = EmotionSystem()
+
+
+    emotion_system = EmotionSystem()
+
+
+    controller = Controller(asr=asr_instance, emotion=emotion_system)
+
+
+    print("Starting the listen method test...\n")
+    text, emotion = controller.listen()
+
+
+    print(f"Transcribed Text: {text}")
+    print(f"Detected Emotion: {emotion}")
 
 
