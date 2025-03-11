@@ -124,7 +124,7 @@ class Controller:
             response=response,
             emotion=emotion
         )
-        self.memory.add_preference(self.user, self.conversation_index, preference)
+        self.memory.add_preference(self.user, self.conversation_index, preference) #storage of emotion into memory
 
         self.speak("Are you satisfied with the recommendation?")
         response, _ = self.listen(prompt = "Are you satisfied with the recommendation?")
