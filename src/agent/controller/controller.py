@@ -14,24 +14,6 @@ import re
 
 os.environ['TOKENIZERS_PARALLELISM'] = "true"
 
-def extract_name(text: str) -> str:
-    """
-    Extracts the name from a string like "my name is [name]."
-    
-    Args:
-        text (str): The input text.
-        
-    Returns:
-        str: The extracted name or an empty string if not found.
-    """
-    # This regex matches "my name is" (case-insensitive) followed by a sequence of letters,
-    # which we'll consider the name.
-    match = re.search(r"my name is\s+([\w'-]+)", text, re.IGNORECASE)
-    if match:
-        return match.group(1)
-    return ""
-
-
 class ConversationPhase(Enum):
     ASK_NAME = "ask_name"
     ASK_CONTEXT = "ask_context"
@@ -40,11 +22,12 @@ class ConversationPhase(Enum):
 
 @dataclass
 class Controller:
+    #initialization of the different models to be used
     memory: Memory = field(default_factory=Memory)
     emotion: LinguisticSystem = field(default_factory=LinguisticSystem)
     asr: ASR = field(default_factory=ASR)
     generator: Generator = field(default_factory=Generator)
-
+    
     user: str = ""
     conversation_index: int = 0
     context: Context = None
@@ -129,7 +112,7 @@ class Controller:
         self.speak("Here is a recommendation for you.")
         memories = self.memory.retrieve(self.user, self.conversation_index)
         context_and_user_info = self.context | self.user_info
-        text, image = self.generator.generate(context_and_user_info, memories)
+        text, image = self.generator.generate(context_and_user_info, memories) #recommendation and image generation
         self.speak(text)
         self.show_image(image)
 
@@ -161,14 +144,14 @@ class Controller:
     def listen(self, prompt: str) -> tuple[str,str]:
         duration = 5 
         fs = 16000 
-        print("Listening... Please speak now.")
+        print("Listening... Please speak now.") #listen to the user for 5 seconds
         recording = sd.rec(int(duration * fs), samplerate=fs, channels=1)
         sd.wait()
         temp_filename = f"temp_{uuid.uuid4()}.wav"
         wavio.write(temp_filename, recording, fs, sampwidth=2)
         
-        text = self.asr.transcribe(prompt, temp_filename)
-        emotion = self.emotion.get_emotion(text)
+        text = self.asr.transcribe(prompt, temp_filename) #transcribe text
+        emotion = self.emotion.get_emotion(text)#infer emotion from the text
         
         # Clean up the temporary file.
         os.remove(temp_filename)
