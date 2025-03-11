@@ -6,8 +6,8 @@ def main():
 
     # Run dialogues indefinetely without closing program
     while True:
-        controller = Controller(asr=asr_instance)
         print("-"*20 + ' New Conversation   ' + "-"*20)
+        controller = Controller(asr=asr_instance)
         controller.start()
         print("-"*20 + ' Conversation Ended ' + "-"*20)
 

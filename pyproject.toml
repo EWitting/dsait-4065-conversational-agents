@@ -9,8 +9,12 @@ dependencies = [
     "pytest>=8.3.5",
     "transformers>=4.49.0",
     "whisper>=1.1.10",
-    "torch>=2.6.0+cu118",
+    "torch==2.6.0+cu118",
     "ollama>=0.4.7",
+    "mistralai>=1.5.1",
+    "sounddevice>=0.5.1",
+    "wavio>=0.0.9",
+    "pillow>=11.0.0",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"
