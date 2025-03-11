@@ -8,3 +8,8 @@ wheels/
 
 # venv
 .venv
+
+#mistral_ai
+src/agent/generator/mistral_api
+
+*.wav

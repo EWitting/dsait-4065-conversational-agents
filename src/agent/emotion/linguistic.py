@@ -1,7 +1,15 @@
+
+from transformers import pipeline
+
 class LinguisticSystem:
     def __init__(self):
-        pass
+        self.emotion = pipeline("text-classification", model="j-hartmann/emotion-english-distilroberta-base")
 
-    def get_emotion(self, audio):
-        pass
+
+    def get_emotion(self, text):
+        emotion = self.emotion(text)
+        if not emotion:
+            return "Unknown"
+        else:
+            return emotion[0].get('label', 'Unknown')
 

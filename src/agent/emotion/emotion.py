@@ -8,7 +8,8 @@ class EmotionSystem:
     videoSystem: VideoSystem
 
     def __init__(self):
-        pass
+        self.linguisticSystem = LinguisticSystem()
+        self.videoSystem = VideoSystem()
 
     def get_emotion(self, video, audio):
         linguistic_emotion = self.linguisticSystem.get_emotion(audio)
@@ -16,5 +17,13 @@ class EmotionSystem:
         return self.combine_emotions(linguistic_emotion, video_emotion)
 
     def combine_emotions(self, linguistic_emotion, video_emotion):
-        pass
+        if linguistic_emotion == video_emotion:
+            return linguistic_emotion
 
+        if linguistic_emotion == "Unknown":
+            return video_emotion
+
+        if video_emotion == "Unknown":
+            return linguistic_emotion
+
+        return video_emotion
