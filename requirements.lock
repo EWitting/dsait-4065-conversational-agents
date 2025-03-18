@@ -10,5 +10,138 @@
 #   universal: false
 
 -e file:.
-numpy==2.2.3
+annotated-types==0.7.0
+    # via pydantic
+anyio==4.8.0
+    # via httpx
+certifi==2022.12.7
+    # via httpcore
+    # via httpx
+    # via requests
+cffi==1.17.1
+    # via sounddevice
+charset-normalizer==2.1.1
+    # via requests
+colorama==0.4.6
+    # via pytest
+    # via tqdm
+eval-type-backport==0.2.2
+    # via mistralai
+ffmpeg-python==0.2.0
+    # via whisper-openai
+filelock==3.13.1
+    # via huggingface-hub
+    # via torch
+    # via transformers
+fsspec==2024.6.1
+    # via huggingface-hub
+    # via torch
+future==1.0.0
+    # via ffmpeg-python
+h11==0.14.0
+    # via httpcore
+httpcore==1.0.7
+    # via httpx
+httpx==0.28.1
+    # via mistralai
+    # via ollama
+huggingface-hub==0.29.2
+    # via tokenizers
+    # via transformers
+idna==3.4
+    # via anyio
+    # via httpx
+    # via requests
+iniconfig==2.0.0
+    # via pytest
+jinja2==3.1.4
+    # via torch
+jsonpath-python==1.0.6
+    # via mistralai
+markupsafe==2.1.5
+    # via jinja2
+mistralai==1.5.1
+    # via ca
+more-itertools==10.6.0
+    # via whisper-openai
+mpmath==1.3.0
+    # via sympy
+mypy-extensions==1.0.0
+    # via typing-inspect
+networkx==3.3
+    # via torch
+numpy==2.1.2
+    # via transformers
+    # via wavio
+    # via whisper-openai
+ollama==0.4.7
+    # via ca
+packaging==24.1
+    # via huggingface-hub
+    # via pytest
+    # via transformers
+pillow==11.0.0
+    # via ca
+pluggy==1.5.0
+    # via pytest
+pycparser==2.22
+    # via cffi
+pydantic==2.10.6
+    # via mistralai
+    # via ollama
+pydantic-core==2.27.2
+    # via pydantic
+pytest==8.3.5
+    # via ca
+python-dateutil==2.9.0.post0
+    # via mistralai
+pyyaml==6.0.2
+    # via huggingface-hub
+    # via transformers
+regex==2024.11.6
+    # via transformers
+requests==2.28.1
+    # via huggingface-hub
+    # via transformers
+safetensors==0.5.3
+    # via transformers
+setuptools==70.2.0
+    # via torch
+six==1.17.0
+    # via python-dateutil
+    # via whisper
+sniffio==1.3.1
+    # via anyio
+sounddevice==0.5.1
+    # via ca
+sympy==1.13.1
+    # via torch
+tokenizers==0.21.0
+    # via transformers
+torch==2.6.0+cu118
+    # via ca
+    # via whisper-openai
+tqdm==4.66.5
+    # via huggingface-hub
+    # via transformers
+    # via whisper-openai
+transformers==4.49.0
+    # via ca
+    # via whisper-openai
+typing-extensions==4.12.2
+    # via anyio
+    # via huggingface-hub
+    # via pydantic
+    # via pydantic-core
+    # via torch
+    # via typing-inspect
+typing-inspect==0.9.0
+    # via mistralai
+urllib3==1.26.13
+    # via requests
+wavio==0.0.9
+    # via ca
+whisper==1.1.10
+    # via ca
+whisper-openai==1.0.0
     # via ca
