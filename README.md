@@ -1,6 +1,8 @@
-# ca
+# Fashion Recommender Agent
 
-Describe your project here.
+TU Delft, 2025. Course: Conversational Agents.
+
+![V1 Gui](assets/gui_v1.png)
 
 ## Installing and running
 

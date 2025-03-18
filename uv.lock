@@ -271,6 +271,7 @@ dependencies = [
     { name = "pytest" },
     { name = "python-dotenv" },
     { name = "sounddevice" },
+    { name = "sv-ttk" },
     { name = "tf-keras" },
     { name = "transformers" },
     { name = "wavio" },
@@ -287,6 +288,7 @@ requires-dist = [
     { name = "pytest", specifier = ">=8.3.5" },
     { name = "python-dotenv", specifier = ">=1.0.1" },
     { name = "sounddevice", specifier = ">=0.5.1" },
+    { name = "sv-ttk", specifier = ">=2.6.0" },
     { name = "tf-keras", specifier = ">=2.19.0" },
     { name = "transformers", specifier = ">=4.49.0" },
     { name = "wavio", specifier = ">=0.0.9" },
@@ -1782,6 +1784,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/d7/ce/fbaeed4f9fb8b2daa961f90591662df6a86c1abf25c548329a86920aedfb/soupsieve-2.6.tar.gz", hash = "sha256:e2e68417777af359ec65daac1057404a3c8a5455bb8abc36f1a9866ab1a51abb", size = 101569 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d1/c2/fe97d779f3ef3b15f05c94a2f1e3d21732574ed441687474db9d342a7315/soupsieve-2.6-py3-none-any.whl", hash = "sha256:e72c4ff06e4fb6e4b5a9f0f55fe6e81514581fca1515028625d0f299c602ccc9", size = 36186 },
+]
+
+[[package]]
+name = "sv-ttk"
+version = "2.6.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/40/da/6ad667a4bad4d66ec2d15206c1a1ad81d572679e516aae078824a6f35870/sv_ttk-2.6.0.tar.gz", hash = "sha256:3fd440396c95e30e88f686fcf28be425480f7320d6bf346f9cea5d6f56702cc2", size = 47214 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/0f/3d/be0abc3202e90f282ad465f4e7c6e41bc8dce810ce5d1611566a1e7dfba8/sv_ttk-2.6.0-py3-none-any.whl", hash = "sha256:4319c52edf2e14732fe84bdc9788e26f9e9a1ad79451ec0f89f0120ffc8105d9", size = 49097 },
 ]
 
 [[package]]

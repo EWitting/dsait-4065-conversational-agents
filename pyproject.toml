@@ -21,4 +21,5 @@ dependencies = [
     "tf-keras>=2.19.0",
     "transformers>=4.49.0",
     "wavio>=0.0.9",
+    "sv-ttk>=2.6.0",
 ]
