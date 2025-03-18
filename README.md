@@ -2,9 +2,13 @@
 
 Describe your project here.
 
-## Installation
+## Installing and running
 
-We use `uv`  as the package manager.
+To install the application, you will need to follow these instructions, and make sure you have Ollama downloaded and installed.
+
+> You can install Ollama via the [Ollama download page](https://ollama.com/download).
+
+We use `uv`  as the package manager
 
 > Install `uv` through `pip`  if you have it, otherwise follow instructions on the [official Uv installation docs](https://docs.astral.sh/uv/getting-started/installation/).
 

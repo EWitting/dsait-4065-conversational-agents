@@ -3,7 +3,7 @@ name = "dsait-4065-conversational-agents"
 version = "0.1.0"
 description = "Add your description here"
 authors = [
-     { name = "Emiel", email = "emiel.witting@gmail.com" }
+     { name = "Emiel", email = "emiel.witting@gmail.com" },
      { name = "Razo", email = "razovanberkel@gmail.com" }
 ]
 readme = "README.md"
