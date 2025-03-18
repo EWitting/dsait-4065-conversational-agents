@@ -1,5 +1,5 @@
-from deepface import DeepFace
-import cv2
+# from deepface import DeepFace
+# import cv2
 import time
 
 class VideoSystem:
