@@ -1,8 +1,10 @@
 import tkinter as tk
 from tkinter import messagebox
+from tkinter import messagebox
 from dotenv import load_dotenv
 import sys
 from src.gui.fashionAssistantGUI import FashionAssistantGUI
+
 
 load_dotenv()
 
