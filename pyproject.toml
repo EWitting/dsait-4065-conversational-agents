@@ -13,6 +13,7 @@ dependencies = [
     "pytest>=8.3.5",
     "python-dotenv>=1.0.1",
     "sounddevice>=0.5.1",
+    "tf-keras>=2.19.0",
     "transformers>=4.49.0",
     "wavio>=0.0.9",
 ]
