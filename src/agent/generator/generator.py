@@ -5,20 +5,10 @@ from PIL import Image
 from io import BytesIO
 import os
 
-
-def read_api_key(path):
-    with open(path, "r") as f:
-        return f.read()
-
-
-# stability_api_key = read_api_key("stability_api")
-
-
 class Generator:
     def __init__(self):
         key_file_path = os.path.join(os.path.dirname(__file__), "mistral_api")
-        mistral_api_key = read_api_key(key_file_path)
-        self.mistral_client = Mistral(api_key=mistral_api_key)
+        self.mistral_client = Mistral(api_key=os.getenv("MISTRAL_API_KEY"))
         self.model = "mistral-large-latest"
         self.initialisation_prompt = """You are a fashion outfit generator. Based on the provided CONTEXT (occasion), your Previous Suggestions (so that you know what was suggested in the conversation) and PREFERENCES (the preferences of the person regarding clothing), create an outfit with this structure:
 1. Top: Upper garments (color, material, style)
