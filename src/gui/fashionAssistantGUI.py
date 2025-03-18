@@ -19,12 +19,13 @@ from src.agent.generator.generator import Generator
 from src.agent.controller.controller import ConversationPhase
 
 
-
 class FashionAssistantGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Fashion Assistant")
-        self.root.geometry("1000x600")  # Wider window to accommodate side-by-side layout
+        self.root.geometry(
+            "1000x600"
+        )  # Wider window to accommodate side-by-side layout
         self.root.configure(bg="#f0f0f0")
 
         # Initialize conversation state
@@ -44,7 +45,7 @@ class FashionAssistantGUI:
             asr=self.asr,
             memory=self.memory,
             emotion=self.emotion,
-            generator=self.generator
+            generator=self.generator,
         )
 
         # Override controller methods
@@ -68,18 +69,13 @@ class FashionAssistantGUI:
             width=50,
             height=20,
             font=("Arial", 10),
-            bg="white"
+            bg="white",
         )
         self.chat_display.config(state=tk.DISABLED)
 
         # User input area
         self.input_frame = tk.Frame(self.left_frame, bg="#f0f0f0")
-        self.user_input = tk.Entry(
-            self.input_frame,
-            width=50,
-            font=("Arial", 10),
-            bd=2
-        )
+        self.user_input = tk.Entry(self.input_frame, width=50, font=("Arial", 10), bd=2)
         self.user_input.bind("<Return>", self.send_message)
 
         # Buttons
@@ -91,7 +87,7 @@ class FashionAssistantGUI:
             width=10,
             bg="#4CAF50",
             fg="white",
-            font=("Arial", 10, "bold")
+            font=("Arial", 10, "bold"),
         )
         self.speak_button = tk.Button(
             self.button_frame,
@@ -100,7 +96,7 @@ class FashionAssistantGUI:
             width=10,
             bg="#2196F3",
             fg="white",
-            font=("Arial", 10, "bold")
+            font=("Arial", 10, "bold"),
         )
         self.new_convo_button = tk.Button(
             self.button_frame,
@@ -109,7 +105,7 @@ class FashionAssistantGUI:
             width=15,
             bg="#FF9800",
             fg="white",
-            font=("Arial", 10, "bold")
+            font=("Arial", 10, "bold"),
         )
 
         # Image display area
@@ -118,11 +114,7 @@ class FashionAssistantGUI:
 
         # Status bar
         self.status_bar = tk.Label(
-            self.root,
-            text="Ready",
-            bd=1,
-            relief=tk.SUNKEN,
-            anchor=tk.W
+            self.root, text="Ready", bd=1, relief=tk.SUNKEN, anchor=tk.W
         )
 
         # Track previous suggestions
@@ -162,9 +154,13 @@ class FashionAssistantGUI:
     def display_system_message(self, message):
         """Display a system message in the chat display with a different format."""
         self.chat_display.config(state=tk.NORMAL)
-        self.chat_display.insert(tk.END, "System: " + message + "\n\n", "system_message")
+        self.chat_display.insert(
+            tk.END, "System: " + message + "\n\n", "system_message"
+        )
         # Define a tag for system messages with a gray color
-        self.chat_display.tag_configure("system_message", foreground="#555555", font=("Arial", 9, "italic"))
+        self.chat_display.tag_configure(
+            "system_message", foreground="#555555", font=("Arial", 9, "italic")
+        )
         self.chat_display.see(tk.END)
         self.chat_display.config(state=tk.DISABLED)
 
@@ -184,7 +180,9 @@ class FashionAssistantGUI:
             self.last_input = None
 
             # Let the user know we're waiting for input
-            self.display_system_message("Please type your response or press 'Speak' to use voice input.")
+            self.display_system_message(
+                "Please type your response or press 'Speak' to use voice input."
+            )
             self.update_status("Waiting for input...")
 
             # Wait for either text input or voice input to complete
@@ -242,13 +240,13 @@ class FashionAssistantGUI:
 
         def new_handle_recommending():
             self.controller.speak("Here is a recommendation for you.")
-            memories = self.controller.memory.retrieve(self.controller.user, self.controller.conversation_index)
+            memories = self.controller.memory.retrieve(
+                self.controller.user, self.controller.conversation_index
+            )
 
             # Pass previous suggestions to generate
             text, image = self.controller.generator.generate(
-                self.controller.context,
-                memories,
-                self.previous_suggestions
+                self.controller.context, memories, self.previous_suggestions
             )
 
             # Store this suggestion for future reference
@@ -260,12 +258,10 @@ class FashionAssistantGUI:
             self.controller.speak("What do you think?")
             response, emotion = self.controller.listen()
 
-            preference = dict(
-                outfit=text,
-                response=response,
-                emotion=emotion
+            preference = dict(outfit=text, response=response, emotion=emotion)
+            self.controller.memory.add_preference(
+                self.controller.user, self.controller.conversation_index, preference
             )
-            self.controller.memory.add_preference(self.controller.user, self.controller.conversation_index, preference)
 
             self.controller.speak("Are you satisfied with the recommendation?")
             response, _ = self.controller.listen()
@@ -273,13 +269,14 @@ class FashionAssistantGUI:
             # Make the check case-insensitive by converting to lowercase
             # Also check if 'yes' is in the response, not just equal to 'yes'
             if "yes" in response.lower():
-                self.controller.speak("Thank you for using our service. Have a nice day!")
+                self.controller.speak(
+                    "Thank you for using our service. Have a nice day!"
+                )
                 return ConversationPhase.END
             else:
                 return ConversationPhase.RECOMMENDING
 
         self.controller.handle_recommending = new_handle_recommending
-
 
     def resize_image(self, image, max_width=380, max_height=400):
         """Resize image to fit within the side panel while maintaining aspect ratio"""
@@ -290,6 +287,7 @@ class FashionAssistantGUI:
             new_height = int(height * ratio)
             return image.resize((new_width, new_height), Image.LANCZOS)
         return image
+
     def display_assistant_message(self, message):
         self.chat_display.config(state=tk.NORMAL)
         self.chat_display.insert(tk.END, "Assistant: " + message + "\n\n")
@@ -318,7 +316,9 @@ class FashionAssistantGUI:
             # Start listening
             self.listening = True
             # Disable the button while recording to prevent multiple clicks
-            self.speak_button.config(text="Recording...", bg="#F44336", state=tk.DISABLED)
+            self.speak_button.config(
+                text="Recording...", bg="#F44336", state=tk.DISABLED
+            )
             self.update_status("Listening...")
 
             # Start recording in a separate thread
@@ -352,7 +352,7 @@ class FashionAssistantGUI:
             os.remove(temp_filename)
 
             # Display the transcription result
-            self.display_system_message(f"Voice recognized: \"{text}\"")
+            self.display_system_message(f'Voice recognized: "{text}"')
 
             # Also display as user message
             if text:
