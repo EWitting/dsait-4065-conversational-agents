@@ -22,7 +22,11 @@ uv run main.py
 
 ## Environment Variables
 
-Locate the `.env.example` file in the root directory of the repository. Copy the file, and paste. Then, rename to `.env` and add the required API keys. These are for MistralAI and StabilityAI. Without these, the app will not function (correctly).
+Add your (free) key obtained at mistral.ai to the MISTRAL_API_KEY environment variable before starting. The windows command to do that is: `setx MISTRAL_API_KEY <...>`.
+
+## Experiment configuration
+To restrict the agent's memory to only the current conversation, give the command line argument
+`--disable-long-term-retrieval` (or `-d` as shorter alias). 
 
 ## Linux
 
