@@ -23,7 +23,7 @@ from src.agent.text2speech.text2speech import Text2Speech
 
 
 class FashionAssistantGUI:
-    def __init__(self, root):
+    def __init__(self, root, long_term_retrieval: bool = True):
         self.root = root
         self.root.title("Fashion Assistant")
         self.root.geometry(
@@ -47,14 +47,14 @@ class FashionAssistantGUI:
 
         # Initialize agent components
         self.asr = ASR(model_name="base")
-        self.memory = Memory()
+        self.memory = Memory(long_term_retrieval=long_term_retrieval)
         self.emotion = EmotionSystem()
         self.generator = Generator()
         self.controller = Controller(
             asr=self.asr,
             memory=self.memory,
             emotion=self.emotion,
-            generator=self.generator,
+            generator=self.generator
         )
 
         # Override controller methods

@@ -21,7 +21,7 @@ except Exception as e:
 
 
 def retrieve(
-    conversations: list[Conversation], conversation_index: int, top_k: int = 5
+    conversations: list[Conversation], conversation_index: int, top_k: int = 5, long_term_retrieval: bool = True
 ) -> List[Preference]:
     """Retrieve relevant preference memories from these conversations, based on the current conversation"""
 
@@ -30,6 +30,9 @@ def retrieve(
 
     memories = []
     context_similarities = []
+
+    if not long_term_retrieval:
+        return reversed(conversations[conversation_index]["preferences"])[:top_k] # Return the most recent preferences
 
     # Compare current context with all other conversations
     for i, conversation in enumerate(conversations):
@@ -44,7 +47,7 @@ def retrieve(
 
     # Sort memories by context similarity (highest to lowest)
     sorted_indices = np.argsort(context_similarities)[::-1]
-    memories = [memories[i] for i in sorted_indices[:top_k]]
+    memories = [memories[i] for i in sorted_indices[:top_k]] # Return the most recent preferences of the most similar conversations
     return memories
 
 

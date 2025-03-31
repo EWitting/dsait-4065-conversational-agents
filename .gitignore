@@ -20,3 +20,4 @@ src/agent/generator/stability_api
 src/agent/generator/image_cache/
 
 *.mp3
+*.wav

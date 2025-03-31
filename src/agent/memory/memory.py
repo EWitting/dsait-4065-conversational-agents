@@ -4,6 +4,7 @@ from .retrieval import retrieve
 @dataclass
 class Memory:
     data: UserSchema = field(default_factory=dict)
+    long_term_retrieval: bool = field(default=True)
     
     def user_exists(self, user) -> bool:
         return user in self.data
@@ -25,7 +26,7 @@ class Memory:
     def retrieve(self, user, conversation_index) -> list[str]:
 
         conversations = self.data[user]["conversations"]
-        selection = retrieve(conversations, conversation_index)
+        selection = retrieve(conversations, conversation_index, self.long_term_retrieval)
         
         # Convert each preference entry to a single string
         return list(map(lambda p: self._preference_text_format(p), selection))
