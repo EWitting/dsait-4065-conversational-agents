@@ -18,6 +18,9 @@ from src.agent.emotion.emotion import EmotionSystem
 from src.agent.generator.generator import Generator
 from src.agent.controller.controller import ConversationPhase
 
+# Import our new Text2Speech class
+from src.agent.text2speech.text2speech import Text2Speech
+
 
 class FashionAssistantGUI:
     def __init__(self, root):
@@ -28,6 +31,9 @@ class FashionAssistantGUI:
         )  # Wider window to accommodate side-by-side layout
         self.root.configure(bg="#f0f0f0")
 
+        # Set up the window close handler
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+
         # Initialize conversation state
         self.conversation_active = False
         self.listening = False
@@ -35,6 +41,9 @@ class FashionAssistantGUI:
         # Initialize components
         self.initialize_components()
         self.setup_layout()
+
+        # Initialize Text2Speech engine
+        self.tts = Text2Speech(lang="en")
 
         # Initialize agent components
         self.asr = ASR(model_name="base")
@@ -51,6 +60,10 @@ class FashionAssistantGUI:
         # Override controller methods
         self.override_controller_methods()
 
+        # TTS Settings
+        self.enable_tts = True  # Default to enabled
+        self.setup_tts_controls()
+
     def initialize_components(self):
         # Main container for side-by-side layout
         self.main_container = tk.Frame(self.root, bg="#f0f0f0")
@@ -58,7 +71,7 @@ class FashionAssistantGUI:
         # Left frame - for chat area
         self.left_frame = tk.Frame(self.main_container, bg="#f0f0f0")
 
-        # Right frame - for image display
+        # Right frame - for image display and memory display
         self.right_frame = tk.Frame(self.main_container, bg="#f0f0f0", width=400)
 
         # Chat display area
@@ -108,6 +121,25 @@ class FashionAssistantGUI:
             font=("Arial", 10, "bold"),
         )
 
+        # Memory display area (new)
+        self.memory_frame = tk.Frame(self.right_frame, bg="#f0f0f0", height=150)
+        self.memory_label = tk.Label(
+            self.memory_frame,
+            text="Memory Contents:",
+            bg="#f0f0f0",
+            font=("Arial", 10, "bold"),
+            anchor="w"
+        )
+        self.memory_display = scrolledtext.ScrolledText(
+            self.memory_frame,
+            wrap=tk.WORD,
+            width=45,
+            height=8,
+            font=("Arial", 9),
+            bg="#f5f5f5",
+        )
+        self.memory_display.config(state=tk.DISABLED)
+
         # Image display area
         self.image_frame = tk.Frame(self.right_frame, bg="#f0f0f0")
         self.image_label = tk.Label(self.image_frame, bg="#f0f0f0")
@@ -119,6 +151,29 @@ class FashionAssistantGUI:
 
         # Track previous suggestions
         self.previous_suggestions = []
+
+    def setup_tts_controls(self):
+        """Add TTS toggle button to the interface"""
+        self.tts_var = tk.BooleanVar(value=self.enable_tts)
+
+        # Add checkbox to control TTS
+        self.tts_frame = tk.Frame(self.button_frame, bg="#f0f0f0")
+        self.tts_check = tk.Checkbutton(
+            self.tts_frame,
+            text="Text-to-Speech",
+            variable=self.tts_var,
+            command=self.toggle_tts,
+            bg="#f0f0f0",
+            font=("Arial", 9)
+        )
+        self.tts_check.pack(side=tk.LEFT)
+        self.tts_frame.pack(side=tk.LEFT, padx=10)
+
+    def toggle_tts(self):
+        """Toggle text-to-speech on/off"""
+        self.enable_tts = self.tts_var.get()
+        status = "enabled" if self.enable_tts else "disabled"
+        self.display_system_message(f"Text-to-speech {status}")
 
     def setup_layout(self):
         # Pack main container
@@ -140,12 +195,17 @@ class FashionAssistantGUI:
         self.speak_button.pack(side=tk.LEFT, padx=5)
         self.new_convo_button.pack(side=tk.RIGHT, padx=5)
 
-        # Right side - Image display
+        # Right side - Memory display and Image display
         self.right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, padx=(5, 0))
         self.right_frame.pack_propagate(False)  # Prevent frame from shrinking
 
-        # Image frame in right side
-        self.image_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        # Memory frame at the top of right side
+        self.memory_frame.pack(fill=tk.X, expand=False, padx=10, pady=(10, 5))
+        self.memory_label.pack(fill=tk.X, anchor="w", padx=2, pady=2)
+        self.memory_display.pack(fill=tk.BOTH, expand=True)
+
+        # Image frame below memory display
+        self.image_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
         self.image_label.pack(expand=True)
 
         # Status bar at the bottom
@@ -164,9 +224,67 @@ class FashionAssistantGUI:
         self.chat_display.see(tk.END)
         self.chat_display.config(state=tk.DISABLED)
 
+    def update_memory_display(self, memories):
+        """Update the memory display with the current memory contents"""
+        self.memory_display.config(state=tk.NORMAL)
+        self.memory_display.delete(1.0, tk.END)
+
+        if not memories:
+            self.memory_display.insert(tk.END, "No memories available.")
+        else:
+            # Format memories for display
+            try:
+                if isinstance(memories, list):
+                    for i, memory in enumerate(memories):
+                        self.memory_display.insert(tk.END, f"Memory {i + 1}. {memory}\n-------\n")
+                else:
+                    self.memory_display.insert(tk.END, str(memories))
+            except Exception as e:
+                self.memory_display.insert(tk.END, f"Error displaying memories: {str(e)}")
+
+        self.memory_display.see(tk.END)
+        self.memory_display.config(state=tk.DISABLED)
+
+    def clear_memory_display(self):
+        """Clear the memory display"""
+        self.memory_display.config(state=tk.NORMAL)
+        self.memory_display.delete(1.0, tk.END)
+        self.memory_display.config(state=tk.DISABLED)
+
     def override_controller_methods(self):
         # Override controller's speak method
-        self.controller.speak = self.display_assistant_message
+        original_speak = self.controller.speak
+
+        def new_speak(message):
+            # Display message in UI
+            text_without_summary = message
+            only_summary = message
+            if "Summary:" in message:
+                text_without_summary = message.split('Summary:')[0]
+                only_summary = message.split('Summary:')[1]
+
+            self.display_assistant_message(text_without_summary)
+
+            # Use TTS if enabled
+            if self.enable_tts:
+                self.update_status("Speaking...")
+                try:
+                    # Add message to the speech queue
+                    self.tts.speak(only_summary)
+
+                    # We no longer need to create a new thread here since the queue
+                    # is already being processed in a background thread
+
+                    # Update UI status - this will be updated to Ready when speech finishes
+                    self.root.after(100, self._check_speech_status)
+                except Exception as e:
+                    self.display_system_message(f"TTS Error: {str(e)}")
+                    self.update_status("Ready")
+            else:
+                # If TTS is disabled, immediately update status
+                self.update_status("Ready")
+
+        self.controller.speak = new_speak
 
         # Override controller's listen method
         original_listen = self.controller.listen
@@ -237,18 +355,25 @@ class FashionAssistantGUI:
         self.controller.show_image = new_show_image
 
         original_handle_recommending = self.controller.handle_recommending
+        def remove_random_characters(text_prompt):
+            # remove the ** from the text
+            text_prompt = text_prompt.replace('**', '')
+            return text_prompt
 
         def new_handle_recommending():
-            self.controller.speak("Here is a recommendation for you.")
+            self.controller.speak("Here is a recommendation for you. Give me a second please.")
             memories = self.controller.memory.retrieve(
                 self.controller.user, self.controller.conversation_index
             )
+
+            # Update memory display with retrieved memories
+            self.update_memory_display(memories)
 
             # Pass previous suggestions to generate
             text, image = self.controller.generator.generate(
                 self.controller.context, memories, self.previous_suggestions
             )
-
+            text = remove_random_characters(text)
             # Store this suggestion for future reference
             self.previous_suggestions.append(text)
 
@@ -407,6 +532,9 @@ class FashionAssistantGUI:
         # Clear image
         self.image_label.config(image="")
 
+        # Clear memory display
+        self.clear_memory_display()
+
         # Reset previous suggestions
         self.previous_suggestions = []
 
@@ -425,8 +553,27 @@ class FashionAssistantGUI:
             self.conversation_active = False
             self.new_convo_button.config(state=tk.NORMAL)
             self.update_status("Conversation ended")
+            # Clean up any temporary audio files
+            self.tts.cleanup()
 
     def _reset_speak_button(self):
         """Helper method to reset the speak button state correctly in the main thread"""
         self.listening = False
         self.speak_button.config(text="Speak", bg="#2196F3", state=tk.NORMAL)
+
+    def _check_speech_status(self):
+        """Check if the TTS engine is still speaking and update the status accordingly"""
+        if hasattr(self, 'tts') and self.tts.is_speaking:
+            # Still speaking, check again after a delay
+            self.update_status("Speaking...")
+            self.root.after(500, self._check_speech_status)
+        else:
+            # Done speaking
+            self.update_status("Ready")
+
+    def on_closing(self):
+        """Handle window close event"""
+        # Clean up TTS resources
+        self.tts.cleanup()
+        # Destroy the window
+        self.root.destroy()
