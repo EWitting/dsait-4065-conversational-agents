@@ -371,7 +371,7 @@ class FashionAssistantGUI:
 
             # Pass previous suggestions to generate
             text, image = self.controller.generator.generate(
-                self.controller.context, memories, self.previous_suggestions
+                self.controller.context, self.controller.user_attributes, memories, self.previous_suggestions
             )
             text = remove_random_characters(text)
             # Store this suggestion for future reference

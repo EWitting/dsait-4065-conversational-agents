@@ -45,6 +45,7 @@ class Controller:
     generator: Generator = field(default_factory=Generator)
 
     user: str = ""
+    user_attributes: dict = None
     conversation_index: int = 0
     context: Context = None
     
@@ -65,14 +66,18 @@ class Controller:
                 self.phase = self.handle_recommending()
 
     def handle_ask_name(self) -> ConversationPhase:
+
+        # Assume that it will be allways the same user
+        users = self.memory.list_users()
+        if len(users) > 0:
+            self.user = users[0]['name']
+            self.user_attributes = {k:v for k,v in users[0].items() if k not in ["conversations", "name"]}
+            self.speak(f"Welcome back {self.user}!")
+            return ConversationPhase.ASK_CONTEXT
+
         self.speak("Hi! I'm an AI fashion assistant. What's your name?")
         response, _ = self.listen()
         self.user = response
-
-        # Check if the user already exists in the database
-        if self.memory.user_exists(self.user):
-            self.speak("Hi again")
-            return ConversationPhase.ASK_CONTEXT
         
         self.speak(f"Hi {self.user}, let's start with some personal questions to give you better recommendations.")
 
@@ -93,6 +98,7 @@ class Controller:
             conversations=[]
         )
         self.memory.create_user(user)
+        self.user_attributes = {k:v for k,v in user.items() if k not in ["conversations", "name"]}
         self.speak("Thank you for providing this information, I will remember it.")
 
         return ConversationPhase.ASK_CONTEXT
@@ -121,7 +127,7 @@ class Controller:
     def handle_recommending(self) -> ConversationPhase:
         self.speak("Here is a recommendation for you.")
         memories = self.memory.retrieve(self.user, self.conversation_index)
-        text, image = self.generator.generate(self.context, memories)
+        text, image = self.generator.generate(self.context, self.user_attributes, memories)
         self.speak(text)
         self.show_image(image)
 

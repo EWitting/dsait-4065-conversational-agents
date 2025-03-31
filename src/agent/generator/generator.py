@@ -29,16 +29,16 @@ Provide me a short summary of the outfit you create so that I can use the text t
         if not os.path.exists(self.cache_dir):
             os.makedirs(self.cache_dir)
 
-    def generate(self, context: str, memories: list[str], previous_suggestions_text: list[str] = None):
+    def generate(self, context: str, user_attributes: dict, memories: list[str], previous_suggestions_text: list[str] = None):
         if previous_suggestions_text is None:
             previous_suggestions_text = []
-        text = self.generate_text(context, memories, previous_suggestions_text)
+        text = self.generate_text(context, user_attributes, memories, previous_suggestions_text)
         image = self.generate_image(text)
         return text, image
 
-    def generate_text(self, context: str, memories: list[str], previous_suggestions_text: list[str]) -> str:
+    def generate_text(self, context: str, user_attributes: dict, memories: list[str], previous_suggestions_text: list[str]) -> str:
         # Construct the prompt using the initialization prompt, context and memories
-        prompt = f"{self.initialisation_prompt}\n\nCONTEXT: {context}\n\n"
+        prompt = f"{self.initialisation_prompt}\n\nUSER: {user_attributes}\nCONTEXT: {context}\n\n"
 
         if memories:
             prompt += "PREFERENCES:\n"

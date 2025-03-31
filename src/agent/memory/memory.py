@@ -6,13 +6,16 @@ class Memory:
     data: UserSchema = field(default_factory=dict)
     long_term_retrieval: bool = field(default=True)
     
-    def user_exists(self, user) -> bool:
-        return user in self.data
+    def user_exists(self, user_name:str) -> bool:
+        return user_name in self.data
 
-    def create_user(self, user) -> None:   
+    def create_user(self, user:User) -> None:   
         self.data[user['name']] = user
 
-    def create_conversation(self, user, context) -> int:        
+    def list_users(self) -> list[User]:
+        return list(self.data.values())
+
+    def create_conversation(self, user:str, context:str) -> int:        
         conversation = dict(    
             context=context,
             preferences=[]
