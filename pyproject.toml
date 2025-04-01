@@ -22,4 +22,5 @@ dependencies = [
     "transformers>=4.49.0",
     "wavio>=0.0.9",
     "sv-ttk>=2.6.0",
+    "gtts>=2.5.4",
 ]
