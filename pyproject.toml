@@ -23,4 +23,5 @@ dependencies = [
     "wavio>=0.0.9",
     "sv-ttk>=2.6.0",
     "gtts>=2.5.4",
+    "playsound==1.2.2",
 ]
