@@ -367,7 +367,7 @@ class FashionAssistantGUI:
             )
 
             # Update memory display with retrieved memories
-            self.update_memory_display(memories)
+            # self.update_memory_display(memories)
 
             # Pass previous suggestions to generate
             text, image = self.controller.generator.generate(
@@ -538,6 +538,13 @@ class FashionAssistantGUI:
         # Reset previous suggestions
         self.previous_suggestions = []
 
+        # Clean up existing TTS engine if it exists
+        if hasattr(self, 'tts'):
+            self.tts.cleanup()
+
+        # Reinitialize the Text2Speech engine
+        self.tts = Text2Speech(lang="en")
+
         # Set conversation state and start new thread
         self.conversation_active = True
         threading.Thread(target=self.run_conversation).start()
@@ -553,8 +560,7 @@ class FashionAssistantGUI:
             self.conversation_active = False
             self.new_convo_button.config(state=tk.NORMAL)
             self.update_status("Conversation ended")
-            # Clean up any temporary audio files
-            self.tts.cleanup()
+            # No TTS cleanup here as it's handled when starting a new conversation
 
     def _reset_speak_button(self):
         """Helper method to reset the speak button state correctly in the main thread"""
