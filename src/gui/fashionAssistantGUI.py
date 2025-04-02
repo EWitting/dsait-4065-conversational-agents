@@ -54,7 +54,7 @@ class FashionAssistantGUI:
             asr=self.asr,
             memory=self.memory,
             emotion=self.emotion,
-            generator=self.generator
+            generator=self.generator,
         )
 
         # Override controller methods
@@ -128,7 +128,7 @@ class FashionAssistantGUI:
             text="Memory Contents:",
             bg="#f0f0f0",
             font=("Arial", 10, "bold"),
-            anchor="w"
+            anchor="w",
         )
         self.memory_display = scrolledtext.ScrolledText(
             self.memory_frame,
@@ -164,7 +164,7 @@ class FashionAssistantGUI:
             variable=self.tts_var,
             command=self.toggle_tts,
             bg="#f0f0f0",
-            font=("Arial", 9)
+            font=("Arial", 9),
         )
         self.tts_check.pack(side=tk.LEFT)
         self.tts_frame.pack(side=tk.LEFT, padx=10)
@@ -236,11 +236,15 @@ class FashionAssistantGUI:
             try:
                 if isinstance(memories, list):
                     for i, memory in enumerate(memories):
-                        self.memory_display.insert(tk.END, f"Memory {i + 1}. {memory}\n-------\n")
+                        self.memory_display.insert(
+                            tk.END, f"Memory {i + 1}. {memory}\n-------\n"
+                        )
                 else:
                     self.memory_display.insert(tk.END, str(memories))
             except Exception as e:
-                self.memory_display.insert(tk.END, f"Error displaying memories: {str(e)}")
+                self.memory_display.insert(
+                    tk.END, f"Error displaying memories: {str(e)}"
+                )
 
         self.memory_display.see(tk.END)
         self.memory_display.config(state=tk.DISABLED)
@@ -260,8 +264,8 @@ class FashionAssistantGUI:
             text_without_summary = message
             only_summary = message
             if "Summary:" in message:
-                text_without_summary = message.split('Summary:')[0]
-                only_summary = message.split('Summary:')[1]
+                text_without_summary = message.split("Summary:")[0]
+                only_summary = message.split("Summary:")[1]
 
             self.display_assistant_message(text_without_summary)
 
@@ -355,13 +359,16 @@ class FashionAssistantGUI:
         self.controller.show_image = new_show_image
 
         original_handle_recommending = self.controller.handle_recommending
+
         def remove_random_characters(text_prompt):
             # remove the ** from the text
-            text_prompt = text_prompt.replace('**', '')
+            text_prompt = text_prompt.replace("**", "")
             return text_prompt
 
         def new_handle_recommending():
-            self.controller.speak("Here is a recommendation for you. Give me a second please.")
+            self.controller.speak(
+                "Here is a recommendation for you. Give me a second please."
+            )
             memories = self.controller.memory.retrieve(
                 self.controller.user, self.controller.conversation_index
             )
@@ -371,7 +378,10 @@ class FashionAssistantGUI:
 
             # Pass previous suggestions to generate
             text, image = self.controller.generator.generate(
-                self.controller.context, self.controller.user_attributes, memories, self.previous_suggestions
+                self.controller.context,
+                self.controller.user_attributes,
+                memories,
+                self.previous_suggestions,
             )
             text = remove_random_characters(text)
             # Store this suggestion for future reference
@@ -467,7 +477,12 @@ class FashionAssistantGUI:
             sd.wait()  # Wait until recording is finished
 
             # Create temporary filename
-            temp_filename = f"temp_{uuid.uuid4()}.wav"
+            # temp_filename = f"{str(uuid.uuid4())}.wav"
+            temp_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "temp")
+
+            os.makedirs(temp_dir, exist_ok=True)
+            temp_filename = os.path.join(temp_dir, f"{uuid.uuid4()}.wav")
+
             wavio.write(temp_filename, recording, fs, sampwidth=2)
 
             # Transcribe the audio
@@ -539,7 +554,7 @@ class FashionAssistantGUI:
         self.previous_suggestions = []
 
         # Clean up existing TTS engine if it exists
-        if hasattr(self, 'tts'):
+        if hasattr(self, "tts"):
             self.tts.cleanup()
 
         # Reinitialize the Text2Speech engine
@@ -569,7 +584,7 @@ class FashionAssistantGUI:
 
     def _check_speech_status(self):
         """Check if the TTS engine is still speaking and update the status accordingly"""
-        if hasattr(self, 'tts') and self.tts.is_speaking:
+        if hasattr(self, "tts") and self.tts.is_speaking:
             # Still speaking, check again after a delay
             self.update_status("Speaking...")
             self.root.after(500, self._check_speech_status)
