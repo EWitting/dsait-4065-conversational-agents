@@ -4,12 +4,20 @@ __pycache__/
 build/
 dist/
 wheels/
+.idea/
 *.egg-info
 
+*.env
+
 # venv
-.venv
+.venv/
 
 #mistral_ai
-src/agent/generator/mistral_api
+src/agent/generator/mistral_ai
 
+src/agent/generator/mistral_api
+src/agent/generator/stability_api
+src/agent/generator/image_cache/
+
+*.mp3
 *.wav

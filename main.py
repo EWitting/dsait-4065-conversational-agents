@@ -1,15 +1,36 @@
-from src.agent.controller.controller import Controller
-from src.agent.asr.asr import ASR
+import tkinter as tk
+from tkinter import messagebox
+from dotenv import load_dotenv
+import sys
+import argparse
 
-def main():
-    asr_instance = ASR(model_name="base")
+import sv_ttk
+from src.gui.fashionAssistantGUI import FashionAssistantGUI
 
-    # Run dialogues indefinetely without closing program
-    while True:
-        print("-"*20 + ' New Conversation   ' + "-"*20)
-        controller = Controller(asr=asr_instance)
-        controller.start()
-        print("-"*20 + ' Conversation Ended ' + "-"*20)
+
+load_dotenv()
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--disable-long-term-retrieval",
+        "-d",
+        action="store_true",
+        help="Disable long-term retrieval for the assistant",
+    )
+    args = parser.parse_args()
+
+    root = tk.Tk()
+
+    def on_closing():
+        if messagebox.askokcancel("Quit", "Do you want to quit?"):
+            root.destroy()
+            sys.exit(0)
+
+    root.protocol("WM_DELETE_WINDOW", on_closing)
+    # NOTE: does not do anything yet. Need to migrate from Tk to TTK widgets!
+    sv_ttk.set_theme("dark")
+    app = FashionAssistantGUI(
+        root, long_term_retrieval=not args.disable_long_term_retrieval
+    )
+    root.mainloop()

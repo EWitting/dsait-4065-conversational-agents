@@ -1,5 +1,5 @@
-from deepface import DeepFace
-import cv2
+# from deepface import DeepFace
+# import cv2
 import time
 
 #video emotion inference. ended up not being used due to bugs, but implementation is provided here anyways
