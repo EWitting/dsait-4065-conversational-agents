@@ -14,6 +14,7 @@ import os
 from src.agent.controller.controller import Controller
 from src.agent.asr.asr import ASR
 from src.agent.memory.memory import Memory
+from src.agent.emotion.linguistic import LinguisticSystem
 from src.agent.emotion.emotion import EmotionSystem
 from src.agent.generator.generator import Generator
 from src.agent.controller.controller import ConversationPhase
@@ -274,13 +275,14 @@ class FashionAssistantGUI:
         # Override controller's listen method
         original_listen = self.controller.listen
 
-        def new_listen():
+        def new_listen(prompt=""):
             """
             Modified listen method that waits for either text input or speak button press
             """
             # Reset input state
             self.waiting_for_input = True
             self.last_input = None
+            self.last_emotion="neutral"
 
             # Let the user know we're waiting for input
             self.display_system_message(
@@ -299,11 +301,13 @@ class FashionAssistantGUI:
 
             # Get whatever input was provided
             input_text = self.last_input if self.last_input is not None else ""
-
+            if input_text:
+                self.last_emotion = self.emotion.linguisticSystem.get_emotion(input_text)
+            emotion = self.last_emotion if hasattr(self, "last_emotion") else "neutral"
             # Reset for next input
             self.last_input = None
-
-            return input_text, "neutral"
+            self.last_emotion = "neutral"
+            return input_text, emotion
 
         self.controller.listen = new_listen
 
@@ -425,7 +429,7 @@ class FashionAssistantGUI:
             self.last_input = message
             self.waiting_for_input = False
 
-    def toggle_listening(self):
+    def toggle_listening(self, prompt):
         """Toggle voice input recording"""
         if not self.listening:
             # Start listening
@@ -437,12 +441,12 @@ class FashionAssistantGUI:
             self.update_status("Listening...")
 
             # Start recording in a separate thread
-            threading.Thread(target=self.record_audio).start()
+            threading.Thread(target=self.record_audio, args=(prompt,)).start()
         else:
             # This shouldn't happen with the disabled button during recording
             pass
 
-    def record_audio(self):
+    def record_audio(self, prompt=""):
         """Record audio and process it with ASR"""
         try:
             # Set up recording parameters
@@ -466,7 +470,8 @@ class FashionAssistantGUI:
             wavio.write(temp_filename, recording, fs, sampwidth=2)
 
             # Transcribe the audio
-            text = self.asr.transcribe(temp_filename)
+            text = self.asr.transcribe(prompt, temp_filename)
+            emotion = self.emotion.linguisticSystem.get_emotion(text)
 
             # Clean up the temporary file
             os.remove(temp_filename)
@@ -486,6 +491,7 @@ class FashionAssistantGUI:
             self.display_system_message(f"Error recording audio: {str(e)}")
             # Still need to provide something and mark as not waiting
             self.last_input = ""
+            self.last_emotion = "neutral"
             self.waiting_for_input = False
         finally:
             # IMPORTANT: Use root.after to ensure button state is updated in the main thread
