@@ -6,7 +6,7 @@ class LinguisticSystem:
         self.emotion = pipeline("text-classification", model="j-hartmann/emotion-english-distilroberta-base") #feed the text to the classifier to infer emotion
 
 
-    def get_emotion(self, text):
+    def get_emotion(self, text: str):
         emotion = self.emotion(text)#usage of the function
         if not emotion:
             return "Unknown"
