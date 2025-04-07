@@ -35,7 +35,6 @@ class FashionAssistantGUI:
 
         self.conversation_active = False
         self.listening = False
-        self.last_prompt = ""
 
         self.initialize_components()
         self.setup_layout()
@@ -283,7 +282,6 @@ class FashionAssistantGUI:
             # Reset input state
             self.waiting_for_input = True
             self.last_input = None
-            self.last_prompt = prompt
             self.last_emotion="neutral"
 
             # Let the user know we're waiting for input
@@ -291,6 +289,7 @@ class FashionAssistantGUI:
                 "Please type your response or press 'Speak' to use voice input."
             )
             self.update_status("Waiting for input...")
+            self.speak_button.config(command = lambda: self.toggle_listening(prompt))
 
             # Wait for either text input or voice input to complete
             while self.waiting_for_input:
@@ -360,7 +359,7 @@ class FashionAssistantGUI:
             )
 
             # Update memory display with retrieved memories
-            # self.update_memory_display(memories)
+            self.update_memory_display(memories)
 
             # Pass previous suggestions to generate
             text, image = self.controller.generator.generate(
@@ -431,7 +430,7 @@ class FashionAssistantGUI:
             self.last_input = message
             self.waiting_for_input = False
 
-    def toggle_listening(self):
+    def toggle_listening(self, prompt=""):
         """Toggle voice input recording"""
         if not self.listening:
             # Start listening
@@ -443,7 +442,7 @@ class FashionAssistantGUI:
             self.update_status("Listening...")
 
             # Start recording in a separate thread
-            threading.Thread(target=self.record_audio, args=(self.last_prompt,)).start()
+            threading.Thread(target=self.record_audio, args=(prompt,)).start()
         else:
             # This shouldn't happen with the disabled button during recording
             pass
