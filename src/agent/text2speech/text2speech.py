@@ -4,8 +4,13 @@ import threading
 import time
 import queue
 from gtts import gTTS
-from playsound import playsound
+import librosa
+import sounddevice as sd
 
+def play_audio(filename):
+    audio, sr = librosa.load(filename)
+    sd.play(audio, sr)
+    sd.wait()  # Wait until audio is done playing
 
 class Text2Speech:
     """
@@ -120,7 +125,7 @@ class Text2Speech:
             audio_file = filename or self.current_audio
 
             # Play the audio in a separate thread to avoid blocking
-            threading.Thread(target=playsound, args=(audio_file,)).start()
+            threading.Thread(target=play_audio, args=(audio_file,)).start()
             return True
 
         except Exception as e:
@@ -170,7 +175,7 @@ class Text2Speech:
                     # Convert and play
                     filename = self.convert_to_speech(text)
                     self._log(f"Playing audio file: {filename}")
-                    playsound(filename)  # This blocks until audio is done playing
+                    play_audio(filename)
 
                     # Mark task as done
                     self.speech_queue.task_done()
