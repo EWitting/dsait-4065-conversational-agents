@@ -1,0 +1,8 @@
+# please install these packages for the notebook to work
+matplotlib
+seaborn
+ipykernel
+numpy
+pandas
+ipywidgets
+scipy

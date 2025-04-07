@@ -1,0 +1,22 @@
+The system is accurate
+The system is unreliable
+The interaction with the system is unpredictable
+The system didn't always do what I wanted
+The system didn't always do what I expected
+The system is dependable
+The system makes few errors
+The interaction with the system is consistent
+The interaction with the system is efficient
+The system is useful,The system is pleasant
+The system is friendly
+I was able to recover easily from errors
+I enjoyed using the system
+It is clear how to speak to the system
+It is easy to learn to use the system
+I would use this system
+I felt in control of the interaction with the system
+The interaction with the system is repetitive
+The interaction with the system is boring
+The interaction with the system is irritating
+The interaction with the system is frustrating
+The system is too inflexible
